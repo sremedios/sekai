@@ -4,7 +4,7 @@ use world::World;
 /// # Arguments
 /// * `M` - The type to use for messages between entities
 /// # Example
-/// ```
+/// ```rust
 /// struct Cat {
 ///     hunger: i64,
 /// }
