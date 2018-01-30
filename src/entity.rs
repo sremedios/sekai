@@ -14,15 +14,11 @@ use world::World;
 ///     fn update(&mut self, world: &World) {
 ///         self.hunger += 1;
 ///         if self.hunger >= 100 {
-///             self.send_all("MEOW".into());
+///             self.send_message("MEOW".into());
 ///         }
 ///     }
-///     /// Cats send messages to stdout
-///     fn send_all(&self, message: String, world: &World) {
-///         println!("{}", message);
-///     }
 ///     /// Cats ignore any incoming messages
-///     fn receive(&mut  self, message: T) {}
+///     fn receive_message(&mut  self, message: T) {}
 /// }
 /// ```
 pub trait Entity<M> {
@@ -30,13 +26,16 @@ pub trait Entity<M> {
     /// # Arguments
     /// * `world` - the world the entity exists in
     fn update(&mut self, world: &World<M>);
-    /// Sends a message to every entity in the world
+    /// Sends a message to the world. The world will choose which entities to
+    /// forward the message to
     /// # Arguments
     /// * `message` - The message being sent to all other entities
     /// * `world` - The world the entity exists in
-    fn send_all(&self, message: M, world: &World<M>);
+    fn send_message(&self, message: M, world: &mut World<M>) {
+        world.receive_message(message)
+    }
     /// Handler for receiving a message
     /// # Arguments
     /// * `message` - The message to receive
-    fn receive(&mut self, message: M);
+    fn receive_message(&mut self, message: M);
 }
