@@ -3,4 +3,10 @@ name = "sekai"
 version = "0.1.0"
 authors = ["sremedios <sam.remedios@gmail.com>"]
 
+description = "Observe emergent behavior in multi-agent systems. Focus is on complex adaptive systems as computation tools."
+repository = "https://github.com/sremedios/sekai/"
+
+readme = "#Sekai"
+
+license = "GPL-3.0-or-later"
 [dependencies]
