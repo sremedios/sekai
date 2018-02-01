@@ -6,6 +6,6 @@ pub trait World<M> {
     fn num_entities(&self) -> usize;
     /// Handles a message sent by an entity
     /// # Arguments
-    /// * `message` - The message being received from an entity
+    /// * `message` - The message being received from an entity 
     fn receive_message(&mut self, message: M);
 }
