@@ -25,17 +25,17 @@ pub trait Entity<M> {
     /// Updates the entity based on the world around it
     /// # Arguments
     /// * `world` - the world the entity exists in
-    pub fn update(&mut self, world: &World<M>);
+    fn update(&mut self, world: &World<M>);
     /// Sends a message to the world. The world will choose which entities to
     /// forward the message to
     /// # Arguments
     /// * `message` - The message being sent to all other entities
     /// * `world` - The world the entity exists in
-    pub fn send_message(&self, message: M, world: &mut World<M>) {
+    fn send_message(&self, message: M, world: &mut World<M>) {
         world.receive_message(message)
     }
     /// Handler for receiving a message
     /// # Arguments
     /// * `message` - The message to receive
-    pub fn receive_message(&mut self, message: M);
+    fn receive_message(&mut self, message: M);
 }
