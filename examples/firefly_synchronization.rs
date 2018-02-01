@@ -3,8 +3,8 @@
  *
  */
 extern crate sekai;
-use world::World;
-use entity::Entity;
+use sekai::world::World;
+use sekai::entity::Entity;
 
 // let test_world: World = World::new();
 
