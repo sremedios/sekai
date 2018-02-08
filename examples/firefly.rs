@@ -44,7 +44,7 @@ impl World<Color> for FireflyWorld {
 
     // calls receive message on every firefly
     fn receive_message(&mut self, message: Color) {
-        for (_, firefly) in &mut self.firefly_swarm {
+        for (_id, firefly) in &mut self.firefly_swarm {
             firefly.receive_message(message.clone());
         }
     }
@@ -63,6 +63,8 @@ struct Color {
     red: f32,
     green: f32,
     blue: f32,
+    x: f32,
+    y: f32,
 }
 impl std::ops::Mul<f32> for Color {
     type Output = Color;
@@ -71,6 +73,8 @@ impl std::ops::Mul<f32> for Color {
             red: self.red * rhs,
             green: self.green * rhs,
             blue: self.blue * rhs,
+            x: self.x,
+            y: self.y,
         }
     }
 }
@@ -108,6 +112,7 @@ impl Entity<Color> for Firefly {
         // how to update flash rate?  should this even be parameterized?
 
 
+        // TODO: update position based on the message
     }
 }
 
