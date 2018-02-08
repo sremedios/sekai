@@ -36,9 +36,9 @@ impl World<Color> for FireflyWorld {
             println!("Updating firefly {}", id);
         }*/
 	/* to be implemented 
-	for each fire fire fly 
-	loop thru rest of fire flys 
-	check all xy coord and calc coordinate
+	for each  firefly 
+	loop through the rest of the fire flys 
+	check all x,y cordinates and calculate the coordinate
 	*/ 
 		
     }
