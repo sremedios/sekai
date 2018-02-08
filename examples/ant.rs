@@ -13,10 +13,12 @@ struct AntWorld {
     food_locations: Vec<Food>,
     pheromone_trail: Vec<Pheromone>,
     ant_swarm: HashMap<u32, Ant>,
+    ant_hive: (f32, f32), // where all ants want to go c:
 }
 impl World<Pheromone> for AntWorld {
     // todo: figure out if a ant can see another ant
     fn update(&mut self) {
+        // TODO: call update on each pheromone trail item
     }
 
     // returns the number of ants in the swarm
@@ -44,6 +46,8 @@ impl AntWorld {
 struct Ant {
     x: f32,
     y: f32, // 2D world
+    stride: f32, // how much the ant travels per tick
+    pheromone_sense_threshold: u32, // minimum value needed to follow pheromone trail
 }
 impl Entity<Pheromone> for Ant {
     // todo: receive message, send message,
@@ -57,7 +61,6 @@ impl Entity<Pheromone> for Ant {
         // ant should step
         self.x += message.x;
         self.y += message.y;
-        message.update();
     }
 }
 
@@ -66,7 +69,7 @@ struct Food {
     // Food has a location and some limited resource count
     x: f32,
     y: f32,
-    resource: f32,
+    resource: u32,
 }
 
 #[derive(Debug, Clone)]
@@ -76,8 +79,8 @@ struct Pheromone {
     // strengthens it by resetting the lifetime timer
     x: f32,
     y: f32,
-    strength: f32,
-    decay: f32,
+    strength: u32,
+    decay: u32,
 }
 impl Pheromone {
     fn update(&mut self) {
@@ -91,4 +94,30 @@ fn main() {
 
 #[test]
 fn test_world_update() {
+    let mut world = AntWorld {
+        cur_id: 0,
+        food_locations: vec![
+            Food{x: 5_f32, 
+                y: 5_f32, 
+                resource: 50,
+            },
+            Food{x: -5_f32, 
+                y: -5_f32, 
+                resource: 50,
+            },
+        ],
+        pheromone_trail: Vec::new(),
+        ant_swarm: HashMap::new(),
+        ant_hive: (0_f32, 0_f32),
+    };
+    for i in 0..10 {
+        world.add_entity(Ant {
+            x: i as f32,
+            y: i as f32,
+            stride: 1_f32, // placeholder
+            pheromone_sense_threshold: 2, // placeholder
+        });
+    }
+    println!("{:#?}", world.ant_swarm);
+    assert_eq!(world.num_entities(), 10);
 }
