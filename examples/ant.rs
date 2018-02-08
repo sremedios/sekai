@@ -59,7 +59,12 @@ impl Entity<Pheromone> for Ant {
         self.y += message.y;
         message.update();
     }
+
+    fn send_integer(&mut self) -> u32 {
+        5
+    }
 }
+
 
 #[derive(Debug)]
 struct Food {
@@ -76,8 +81,9 @@ struct Pheromone {
     // strengthens it by resetting the lifetime timer
     x: f32,
     y: f32,
-    strength: f32,
+    lifetime: f32,
     decay: f32,
+    sensitivity: f32, // how far away an ant can be to sense it
 }
 impl Pheromone {
     fn update(&mut self) {
