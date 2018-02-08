@@ -35,12 +35,6 @@ impl World<Color> for FireflyWorld {
         for (id, firefly) in &mut self.firefly_swarm {
             println!("Updating firefly {}", id);
         }*/
-	/* to be implemented 
-	for each fire fire fly 
-	loop thru rest of fire flys 
-	check all xy coord and calc coordinate
-	*/ 
-		
     }
 
     // returns the number of fireflies in the swarm
