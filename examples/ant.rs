@@ -5,14 +5,12 @@
 extern crate sekai;
 use sekai::world::World;
 use sekai::entity::Entity;
-use std::collections::HashMap;
 
 #[derive(Debug)]
 struct AntWorld {
-    cur_id: u32, // used to track ID of each ant in the swarm
     food_locations: Vec<Food>,
     pheromone_trail: Vec<Pheromone>,
-    ant_swarm: HashMap<u32, Ant>,
+    ant_swarm: Vec<Ant>,
     ant_hive: (f32, f32), // where all ants want to go c:
 }
 impl World<Pheromone> for AntWorld {
@@ -28,7 +26,7 @@ impl World<Pheromone> for AntWorld {
 
     // calls receive message on every ant
     fn receive_message(&mut self, message: Pheromone) {
-        for (_, ant) in &mut self.ant_swarm {
+        for ant in &mut self.ant_swarm {
             ant.receive_message(message.clone());
         }
     }
@@ -37,8 +35,15 @@ impl World<Pheromone> for AntWorld {
 impl AntWorld {
     // add a new ant
     fn add_entity(&mut self, ant: Ant) {
-        self.ant_swarm.insert(self.cur_id, ant);
-        self.cur_id += 1;
+        self.ant_swarm.push(ant);
+    }
+
+    fn new() -> Self {
+        AntWorld{
+            food_locations: Vec::new(),
+            pheromone_trail: Vec::new(),
+            ant_swarm: Vec::new(),
+        }
     }
 }
 
@@ -61,6 +66,17 @@ impl Entity<Pheromone> for Ant {
         // ant should step
         self.x += message.x;
         self.y += message.y;
+        //message.update();
+    }
+}
+impl Ant {
+    fn new() -> Self {
+        Ant{
+            x: 0_f32,
+            y: 0_f32,
+          stride: 1_f32,
+          pheromone_sense_threshold: 2_u32,
+        }
     }
 }
 
@@ -79,12 +95,13 @@ struct Pheromone {
     // strengthens it by resetting the lifetime timer
     x: f32,
     y: f32,
-    strength: u32,
-    decay: u32,
+    lifetime: f32,
+    decay: f32,
+    sensitivity: f32, // how far away an ant can be to sense it
 }
 impl Pheromone {
     fn update(&mut self) {
-        self.strength -= self.decay;
+        self.lifetime -= self.decay;
     }
 }
 
@@ -94,29 +111,9 @@ fn main() {
 
 #[test]
 fn test_world_update() {
-    let mut world = AntWorld {
-        cur_id: 0,
-        food_locations: vec![
-            Food{x: 5_f32, 
-                y: 5_f32, 
-                resource: 50,
-            },
-            Food{x: -5_f32, 
-                y: -5_f32, 
-                resource: 50,
-            },
-        ],
-        pheromone_trail: Vec::new(),
-        ant_swarm: HashMap::new(),
-        ant_hive: (0_f32, 0_f32),
-    };
-    for i in 0..10 {
-        world.add_entity(Ant {
-            x: i as f32,
-            y: i as f32,
-            stride: 1_f32, // placeholder
-            pheromone_sense_threshold: 2, // placeholder
-        });
+    let mut world = AntWorld::new();
+    for _ in 0..10 {
+        world.add_entity(Ant::new());
     }
     println!("{:#?}", world.ant_swarm);
     assert_eq!(world.num_entities(), 10);

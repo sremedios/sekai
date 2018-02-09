@@ -21,8 +21,7 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 struct FireflyWorld {
-    cur_id: u32, // used to track ID of each firefly in the swarm
-    firefly_swarm: HashMap<u32, Firefly>,
+    firefly_swarm: Vec<Firefly>,
 }
 impl World<Color> for FireflyWorld {
     // todo: figure out if a firefly can see another firefly
@@ -44,7 +43,7 @@ impl World<Color> for FireflyWorld {
 
     // calls receive message on every firefly
     fn receive_message(&mut self, message: Color) {
-        for (_id, firefly) in &mut self.firefly_swarm {
+        for firefly in &mut self.firefly_swarm {
             firefly.receive_message(message.clone());
         }
     }
@@ -53,8 +52,7 @@ impl World<Color> for FireflyWorld {
 impl FireflyWorld {
     // add a new firefly
     fn add_entity(&mut self, firefly: Firefly) {
-        self.firefly_swarm.insert(self.cur_id, firefly);
-        self.cur_id += 1;
+        self.firefly_swarm.push(firefly);
     }
 }
 
@@ -123,8 +121,7 @@ fn main() {
 #[test]
 fn test_world_update() {
     let mut world = FireflyWorld {
-        cur_id: 0,
-        firefly_swarm: HashMap::new(),
+        firefly_swarm: Vec::new(),
     };
 
     for _ in 0..10 {
@@ -135,6 +132,8 @@ fn test_world_update() {
                 red: 100_f32,
                 green: 100_f32,
                 blue: 100_f32,
+                x: 0_f32,
+                y: 0_f32,
             },
             flash_cooldown: 30,
             cur_flash_cooldown: 30,
