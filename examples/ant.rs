@@ -11,10 +11,12 @@ struct AntWorld {
     food_locations: Vec<Food>,
     pheromone_trail: Vec<Pheromone>,
     ant_swarm: Vec<Ant>,
+    ant_hive: (f32, f32), // where all ants want to go c:
 }
 impl World<Pheromone> for AntWorld {
     // todo: figure out if a ant can see another ant
     fn update(&mut self) {
+        // TODO: call update on each pheromone trail item
     }
 
     // returns the number of ants in the swarm
@@ -49,6 +51,8 @@ impl AntWorld {
 struct Ant {
     x: f32,
     y: f32, // 2D world
+    stride: f32, // how much the ant travels per tick
+    pheromone_sense_threshold: u32, // minimum value needed to follow pheromone trail
 }
 impl Entity<Pheromone> for Ant {
     // todo: receive message, send message,
@@ -70,17 +74,18 @@ impl Ant {
         Ant{
             x: 0_f32,
             y: 0_f32,
+          stride: 1_f32,
+          pheromone_sense_threshold: 2_u32,
         }
     }
 }
-
 
 #[derive(Debug)]
 struct Food {
     // Food has a location and some limited resource count
     x: f32,
     y: f32,
-    resource: f32,
+    resource: u32,
 }
 
 #[derive(Debug, Clone)]
@@ -103,13 +108,13 @@ impl Pheromone {
 fn main() {
     println!("This is the main function");
 }
+
 #[test]
 fn test_world_update() {
     let mut world = AntWorld::new();
     for _ in 0..10 {
         world.add_entity(Ant::new());
     }
-    
     println!("{:#?}", world.ant_swarm);
     assert_eq!(world.num_entities(), 10);
 }
