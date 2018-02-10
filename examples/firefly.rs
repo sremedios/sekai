@@ -19,6 +19,7 @@ use sekai::world::World;
 use sekai::entity::Entity;
 use std::collections::HashMap;
 
+
 #[derive(Debug)]
 struct FireflyWorld {
     cur_id: u32, // used to track ID of each firefly in the swarm
@@ -39,8 +40,7 @@ impl World<Color> for FireflyWorld {
 	for each  firefly 
 	loop through the rest of the fire flys 
 	check all x,y cordinates and calculate the coordinate
-	*/ 
-		
+	*/  	
     }
 
     // returns the number of fireflies in the swarm
