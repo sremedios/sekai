@@ -41,6 +41,8 @@ impl World<Color> for FireflyWorld {
         check all x,y cordinates and calculate the coordinate
         */ 
 		
+        // TODO: have a special check when watching for flashes to see if someone else
+        // is flashing at the same time, then move closer
 
         // if a firefly is in sync for a long enough time, add a new firefly
         // TODO: how to implement:
@@ -110,6 +112,7 @@ impl std::ops::Mul<f32> for Color {
 #[derive(Debug)]
 struct Firefly {
     pos: Vec<f32>,
+    alpha: f32, // amount to step when moving closer
     color: Color, // RGB
     flash_cooldown: u8, // initial flash cooldown
     cur_flash_cooldown: u8, // number of ticks to wait before next flash
@@ -119,11 +122,23 @@ struct Firefly {
     reproduction_range: f32, // for far a firefly must be to reproduce
 }
 
+// TODO: finish overloading here
+impl std::ops::Add<Vec::<f32>> for Vec::<f32> {
+    type Output = Vec::<f32>;
+    fn Add(self, rhs: Vec::<f32>) -> Self {
+        let v = Vec::<f32>::new();
+        for i in 0..self.len() {
+            v.push(self[i] + rhs[i]);
+        }
+    }
+}
+
 impl Firefly {
     // constructor
     fn new(num_dimensions: usize) -> Self {
         Firefly {
             pos: Vec::with_capacity(num_dimensions),
+            alpha: 1_f32, //TODO: placeholder scaling step direction towards other firefly
             color: Color::new(num_dimensions),
             flash_cooldown: 100_u8, // TODO: placeholder
             cur_flash_cooldown: 100_u8, // TODO: placeholder
@@ -134,6 +149,10 @@ impl Firefly {
         }
     }
 
+    fn move_closer(&mut self, other: &Firefly) {
+        // TODO: Overload vector sum and product
+        self.pos += self.alpha * other.pos; 
+    }
 }
 
 /// Fireflies communicate with lights, represented in the
