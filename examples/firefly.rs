@@ -34,12 +34,21 @@ impl World<Color> for FireflyWorld {
         for (id, firefly) in &mut self.firefly_swarm {
             println!("Updating firefly {}", id);
         }*/
-	/* to be implemented 
-	for each  firefly 
-	loop through the rest of the fire flys 
-	check all x,y cordinates and calculate the coordinate
-	*/ 
+
+        /* to be implemented 
+        for each  firefly 
+        loop through the rest of the fire flys 
+        check all x,y cordinates and calculate the coordinate
+        */ 
 		
+
+        // if a firefly is in sync for a long enough time, add a new firefly
+        // TODO: how to implement:
+        // if fireflies flash at the same time, then they move closer
+        // if they are within a close enough radius, birth new firefly 
+        
+        // if a firefly's life is <= 0, remove it
+        // TODO: Execute this in the checking loop
     }
 
     // returns the number of fireflies in the swarm
@@ -56,9 +65,14 @@ impl World<Color> for FireflyWorld {
 }
 
 impl FireflyWorld {
-    // add a new firefly
+    // birth of new entity
     fn add_entity(&mut self, firefly: Firefly) {
         self.firefly_swarm.push(firefly);
+    }
+
+    // death of some entity
+    fn remove_entity(&mut self, idx: usize) {
+        self.firefly_swarm.swap_remove(idx);
     }
 }
 
@@ -67,9 +81,20 @@ struct Color {
     red: f32,
     green: f32,
     blue: f32,
-    x: f32,
-    y: f32,
+    pos: Vec<f32>,
 }
+
+impl Color {
+    fn new(num_dimensions: usize) -> Self {
+        Color{
+            red: 50_f32,
+            green: 50_f32,
+            blue: 50_f32,
+            pos: Vec::with_capacity(num_dimensions),
+        }
+    }
+}
+
 impl std::ops::Mul<f32> for Color {
     type Output = Color;
     fn mul(self, rhs: f32) -> Self {
@@ -77,26 +102,50 @@ impl std::ops::Mul<f32> for Color {
             red: self.red * rhs,
             green: self.green * rhs,
             blue: self.blue * rhs,
-            x: self.x,
-            y: self.y,
+            pos: self.pos,
         }
     }
 }
 
 #[derive(Debug)]
 struct Firefly {
-    x: f32,
-    y: f32, // 2D world
+    pos: Vec<f32>,
     color: Color, // RGB
     flash_cooldown: u8, // initial flash cooldown
     cur_flash_cooldown: u8, // number of ticks to wait before next flash
     flash_rate: u8, // the amt by which flash cooldown decreases
+    lifetime: u8, // the number of ticks a firefly lives for
+    sight_range: f32, // how far a firefly can see, radius
+    reproduction_range: f32, // for far a firefly must be to reproduce
 }
+
+impl Firefly {
+    // constructor
+    fn new(num_dimensions: usize) -> Self {
+        Firefly {
+            pos: Vec::with_capacity(num_dimensions),
+            color: Color::new(num_dimensions),
+            flash_cooldown: 100_u8, // TODO: placeholder
+            cur_flash_cooldown: 100_u8, // TODO: placeholder
+            flash_rate: 1_u8, // TODO: placeholder
+            lifetime: 500_u8, // TODO: placeholder
+            sight_range: 50_f32, // TODO: placeholder
+            reproduction_range: 5_f32, // TODO: placeholder
+        }
+    }
+
+}
+
 /// Fireflies communicate with lights, represented in the
 /// tuple (RGB)
 impl Entity<Color> for Firefly {
+
     // todo: receive message, send message,
     fn update(&mut self, world: &World<Color>) {
+        // tick down life
+        self.lifetime -= 1;
+
+        // tick down flash cooldown
         self.cur_flash_cooldown -= self.flash_rate;
         if self.cur_flash_cooldown == 0 {
             self.cur_flash_cooldown = self.flash_cooldown;
@@ -131,20 +180,7 @@ fn test_world_update() {
     };
 
     for _ in 0..10 {
-        world.add_entity(Firefly {
-            x: 0_f32,
-            y: 0_f32,
-            color: Color {
-                red: 100_f32,
-                green: 100_f32,
-                blue: 100_f32,
-                x: 0_f32,
-                y: 0_f32,
-            },
-            flash_cooldown: 30,
-            cur_flash_cooldown: 30,
-            flash_rate: 1,
-        });
+        world.add_entity(Firefly::new(2));
         world.update();
     }
     println!("{:?}", world.firefly_swarm);
