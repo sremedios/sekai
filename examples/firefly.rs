@@ -37,7 +37,8 @@ impl World<Color> for FireflyWorld {
         for each  firefly 
         loop through the rest of the fire flys 
         check all x,y cordinates and calculate the coordinate
-        */ 
+        */
+
         // if a firefly is in sync for a long enough time, add a new firefly
         // TODO: how to implement:
         // if fireflies flash at the same time, then they move closer
