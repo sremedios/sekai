@@ -60,14 +60,13 @@ impl World<Color> for FireflyWorld {
         }
     }
 }
-
 impl FireflyWorld {
     // birth of new entity
     fn add_entity(&mut self, firefly: Firefly) {
         self.firefly_swarm.push(firefly);
     }
 
-    fn getDist(fireFlyA:&Firefly, fireFlyB: &Firefly) -> f32 {
+    fn get_Dist(fireFly_a:&Firefly, fireFly_b: &Firefly) -> f32 {
         //make firefly pos a vector - instead of (x,y)
         //for n dim pos
         //compare self.pos to other.pos
