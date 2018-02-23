@@ -1,8 +1,9 @@
 /*
- * Synchronize flashing of a firefly swarm
+ *
+ *Synchronize flashing of a firefly swarm
  *
  * Fireflies are stored as a swarm in FireflyWorld.
- * The whole swarm is a hashmap, mapping an ID to the firefly object.
+ * The whole swarm is a vector, mapping an index to the firefly object.
  * This allows us to access specific firefly members during the recieve
  * command.
  *
@@ -16,8 +17,7 @@
  */
 extern crate sekai;
 use sekai::world::World;
-use sekai::entity::Entity;
-use std::collections::HashMap;
+use sekai::entity::Entity; 
 
 #[derive(Debug)]
 struct FireflyWorld {
@@ -34,13 +34,11 @@ impl World<Color> for FireflyWorld {
         for (id, firefly) in &mut self.firefly_swarm {
             println!("Updating firefly {}", id);
         }*/
-
         /* to be implemented 
         for each  firefly 
         loop through the rest of the fire flys 
         check all x,y cordinates and calculate the coordinate
-        */ 
-		
+        */
 
         // if a firefly is in sync for a long enough time, add a new firefly
         // TODO: how to implement:
@@ -49,8 +47,8 @@ impl World<Color> for FireflyWorld {
         
         // if a firefly's life is <= 0, remove it
         // TODO: Execute this in the checking loop
+        
     }
-
     // returns the number of fireflies in the swarm
     fn num_entities(&self) -> usize {
         self.firefly_swarm.len()
@@ -63,11 +61,18 @@ impl World<Color> for FireflyWorld {
         }
     }
 }
-
 impl FireflyWorld {
     // birth of new entity
     fn add_entity(&mut self, firefly: Firefly) {
         self.firefly_swarm.push(firefly);
+    }
+    // calculates Euclidean distance between two fireflys in n dimensional space
+    fn get_dist(&mut self, firefly_a: &Firefly, firefly_b: &Firefly) -> f32 {
+        let mut sum = 0.0f32;
+        for i in 0..firefly_a.pos.len() {
+            sum += (firefly_a.pos[i] - firefly_b.pos[i]).powi(2)
+        };
+        return sum.sqrt();
     }
 
     // death of some entity
@@ -172,7 +177,7 @@ impl Entity<Color> for Firefly {
 fn main() {
     println!("This is the main function");
 }
-
+#[cfg(test)]
 #[test]
 fn test_world_update() {
     let mut world = FireflyWorld {
@@ -185,4 +190,20 @@ fn test_world_update() {
     }
     println!("{:?}", world.firefly_swarm);
     assert_eq!(world.firefly_swarm.len(), 10);
+}
+
+#[cfg(test)]
+#[test]
+fn test_get_dist(){
+    let mut world = FireflyWorld {
+        firefly_swarm: Vec::new(),
+    };
+
+    let mut a = Firefly::new(2);
+    let mut b = Firefly::new(2);
+    a.pos.push(3.0);
+    a.pos.push(4.0);
+    b.pos.push(0.0);
+    b.pos.push(0.0);
+    assert_eq!(world.get_dist(&a,&b), 5.0);
 }
