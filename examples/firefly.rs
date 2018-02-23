@@ -1,5 +1,6 @@
 /*
- * Synchronize flashing of a firefly swarm
+ *
+ *Synchronize flashing of a firefly swarm
  *
  * Fireflies are stored as a swarm in FireflyWorld.
  * The whole swarm is a vector, mapping an index to the firefly object.
@@ -16,7 +17,7 @@
  */
 extern crate sekai;
 use sekai::world::World;
-use sekai::entity::Entity;
+use sekai::entity::Entity; 
 
 #[derive(Debug)]
 struct FireflyWorld {
@@ -65,13 +66,13 @@ impl FireflyWorld {
     fn add_entity(&mut self, firefly: Firefly) {
         self.firefly_swarm.push(firefly);
     }
-
-    fn get_Dist(fireFly_a:&Firefly, fireFly_b: &Firefly) -> f32 {
-        //make firefly pos a vector - instead of (x,y)
-        //for n dim pos
-        //compare self.pos to other.pos
-        //return the dist
-        return 0.0;
+    // calculates Euclidean distance between two fireflys in n dimensional space
+    fn get_dist(&mut self, firefly_a: &Firefly, firefly_b: &Firefly) -> f32 {
+        let mut sum = 0.0f32;
+        for i in 0..firefly_a.pos.len() {
+            sum += (firefly_a.pos[i] - firefly_b.pos[i]).powi(2)
+        };
+        return sum.sqrt();
     }
 
     // death of some entity
@@ -176,7 +177,7 @@ impl Entity<Color> for Firefly {
 fn main() {
     println!("This is the main function");
 }
-
+#[cfg(test)]
 #[test]
 fn test_world_update() {
     let mut world = FireflyWorld {
@@ -189,4 +190,20 @@ fn test_world_update() {
     }
     println!("{:?}", world.firefly_swarm);
     assert_eq!(world.firefly_swarm.len(), 10);
+}
+
+#[cfg(test)]
+#[test]
+fn test_get_dist(){
+    let mut world = FireflyWorld {
+        firefly_swarm: Vec::new(),
+    };
+
+    let mut a = Firefly::new(2);
+    let mut b = Firefly::new(2);
+    a.pos.push(3.0);
+    a.pos.push(4.0);
+    b.pos.push(0.0);
+    b.pos.push(0.0);
+    assert_eq!(world.get_dist(&a,&b), 5.0);
 }
