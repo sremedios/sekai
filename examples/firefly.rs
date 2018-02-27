@@ -95,6 +95,18 @@ impl FireflyWorld {
     fn remove_entity(&mut self, idx: usize) {
         self.firefly_swarm.swap_remove(idx);
     }
+
+    //This outputs the midpoint between two fireflies.
+    fn calc_midpoint(&mut self, ff1:&Firefly, ff2:&Firefly, dist:f32) -> Vec<f32> {
+        let mut newPos = Vec::with_capacity((ff1.pos).len());
+        for i in 0..(ff1.pos).len()
+        {
+            newPos.push((ff2.pos[i] - ff1.pos[i])/2_f32);
+        }
+
+        newPos
+    }
+
 }
 
 #[derive(Clone, Debug)]
@@ -155,6 +167,17 @@ impl Firefly {
         }
     }
 
+
+    //This outputs a unit vector which points from self to other.
+    fn unit_step(&mut self, other:&Firefly, dist:f32) {
+        let mut newPos = Vec::with_capacity((self.pos).len());
+        for i in 0..(self.pos).len()
+        {
+            newPos.push((other.pos[i] - self.pos[i])/dist);
+        }
+        self.pos = newPos;
+
+    }
 
     //This outputs a unit vector which points from self to other.
     fn unit_step(&mut self, other:&Firefly, dist:f32) {
@@ -259,4 +282,41 @@ fn test_unit_step(){
     let d = world.get_dist(&a, &b);
     a.unit_step(&b, d);
     assert_eq!(a.pos, vec![3_f32/5_f32, 4_f32/5_f32]);
+}
+
+
+#[cfg(test)]
+#[test]
+fn test_unit_step(){
+    let mut world = FireflyWorld {
+        firefly_swarm: Vec::new(),
+    };
+
+    let mut a = Firefly::new(2);
+    let mut b = Firefly::new(2);
+    a.pos.push(0.0);
+    a.pos.push(0.0);
+    b.pos.push(3.0);
+    b.pos.push(4.0);
+    let d = world.get_dist(&a, &b);
+    a.unit_step(&b, d);
+    assert_eq!(a.pos, vec![3_f32/5_f32, 4_f32/5_f32]);
+}
+
+#[cfg(test)]
+#[test]
+fn test_midpoint(){
+    let mut world = FireflyWorld {
+        firefly_swarm: Vec::new(),
+    };
+
+    let mut a = Firefly::new(2);
+    let mut b = Firefly::new(2);
+    a.pos.push(0.0);
+    a.pos.push(0.0);
+    b.pos.push(3.0);
+    b.pos.push(4.0);
+    let d = world.get_dist(&a, &b);
+    let mid = world.calc_midpoint(&a, &b, d);
+    assert_eq!(mid, vec![1.5_f32, 2_f32]);
 }
