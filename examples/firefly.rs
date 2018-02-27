@@ -46,9 +46,11 @@ impl World<Color> for FireflyWorld {
         // if they are within a close enough radius, birth new firefly
 
         // if a firefly's life is <= 0, remove it
+        // Iterate to end of list
         let mut last_index: usize = self.firefly_swarm.len();
         let mut index: usize = 0;
         while index < last_index {
+            // Swap and remove dead fireflies
             if self.firefly_swarm[index].lifetime == 0 {
                 self.firefly_swarm.swap_remove(index);
                 last_index -= 1;
