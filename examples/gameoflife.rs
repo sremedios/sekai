@@ -5,7 +5,7 @@
 extern crate sekai;
 use sekai::world::World;
 use sekai::entity::Entity;
-use std::cmp::{Eq,PartialEq};
+use std::cmp::{Eq, PartialEq};
 type Proximity = u32;
 
 #[derive(Debug)]
@@ -35,7 +35,6 @@ impl World<Proximity> for Board {
             }
             cur_idx += 1;
         }
-
     }
 }
 impl Board {
@@ -54,7 +53,6 @@ impl Board {
     }
 }
 
-
 #[derive(Debug)] //, Eq, PartialEq)]
 struct Cell {
     // 2D discrete movement
@@ -69,16 +67,12 @@ impl PartialEq for Cell {
 impl Eq for Cell {}
 
 impl Entity<Proximity> for Cell {
-    fn update(&mut self, _board: &World<Proximity>) {
-    }
-    fn receive_message(&mut self, _message: Proximity) {
-
-    }
-
+    fn update(&mut self, _board: &World<Proximity>) {}
+    fn receive_message(&mut self, _message: Proximity) {}
 }
 impl Cell {
     fn new() -> Self {
-        Cell { x: 0_u32, y: 0_u32,}
+        Cell { x: 0_u32, y: 0_u32 }
     }
 }
 
@@ -100,5 +94,3 @@ fn test_game_of_life() {
     let test_message: Proximity = 5;
     board.receive_message(test_message);
 }
-
-
