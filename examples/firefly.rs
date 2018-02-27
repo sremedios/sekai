@@ -14,10 +14,11 @@
  * a straight optimization.
  *
  */
+
 extern crate sekai;
 use sekai::world::World;
 use sekai::entity::Entity;
-use std::collections::HashMap;
+
 
 #[derive(Debug)]
 struct FireflyWorld {
@@ -48,6 +49,21 @@ impl World<Color> for FireflyWorld {
         // TODO: how to implement:
         // if fireflies flash at the same time, then they move closer
         // if they are within a close enough radius, birth new firefly 
+
+        for i in 0..self.firefly_swarm.len() {
+            for j in 0..self.firefly_swarm.len() {
+                if i == j {
+                    continue;
+                }
+                // calculate proximity here
+                let close_enough: bool = true;
+
+                if close_enough {
+                    // birth  new firefly at the averaged position
+                    // with crossover'd color
+                }
+            }
+        }
         
         // if a firefly's life is <= 0, remove it
         // TODO: Execute this in the checking loop
@@ -76,6 +92,7 @@ impl FireflyWorld {
     fn remove_entity(&mut self, idx: usize) {
         self.firefly_swarm.swap_remove(idx);
     }
+
 }
 
 #[derive(Clone, Debug)]
@@ -95,6 +112,11 @@ impl Color {
             pos: Vec::with_capacity(num_dimensions),
         }
     }
+
+    //fn crossover(&self, &other: Color) -> Self {
+        
+
+    //}
 }
 
 impl std::ops::Mul<f32> for Color {
@@ -120,18 +142,10 @@ struct Firefly {
     lifetime: u8, // the number of ticks a firefly lives for
     sight_range: f32, // how far a firefly can see, radius
     reproduction_range: f32, // for far a firefly must be to reproduce
+    reproduction_cooldown: u8, // initial reprod_cooldown
+    cur_reproduction_cooldown: u8, // number of ticks to wait before reproducing again
 }
 
-// TODO: finish overloading here
-impl std::ops::Add<Vec::<f32>> for Vec::<f32> {
-    type Output = Vec::<f32>;
-    fn Add(self, rhs: Vec::<f32>) -> Self {
-        let v = Vec::<f32>::new();
-        for i in 0..self.len() {
-            v.push(self[i] + rhs[i]);
-        }
-    }
-}
 
 impl Firefly {
     // constructor
@@ -146,12 +160,31 @@ impl Firefly {
             lifetime: 500_u8, // TODO: placeholder
             sight_range: 50_f32, // TODO: placeholder
             reproduction_range: 5_f32, // TODO: placeholder
+            reproduction_cooldown: 100_u8, // TODO: placeholder
+            cur_reproduction_cooldown: 100_u8,
+        }
+    }
+    // birth constructor
+    fn birth(pos: Vec<f32>, color: Color) -> Self {
+        Firefly {
+            pos: pos,
+            alpha: 1_f32, //TODO: placeholder scaling step direction towards other firefly
+            color: color,
+            flash_cooldown: 100_u8, // TODO: placeholder
+            cur_flash_cooldown: 100_u8, // TODO: placeholder
+            flash_rate: 1_u8, // TODO: placeholder
+            lifetime: 500_u8, // TODO: placeholder
+            sight_range: 50_f32, // TODO: placeholder
+            reproduction_range: 5_f32, // TODO: placeholder
+            reproduction_cooldown: 100_u8, // TODO: placeholder
+            cur_reproduction_cooldown: 100_u8,
         }
     }
 
     fn move_closer(&mut self, other: &Firefly) {
-        // TODO: Overload vector sum and product
-        self.pos += self.alpha * other.pos; 
+        for i in 0..other.pos.len() {
+            self.pos[i] = self.alpha * other.pos[i]
+        }
     }
 }
 
@@ -191,6 +224,7 @@ impl Entity<Color> for Firefly {
 fn main() {
     println!("This is the main function");
 }
+
 
 #[test]
 fn test_world_update() {

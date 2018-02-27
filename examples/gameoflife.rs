@@ -29,13 +29,14 @@ impl World<Proximity> for Board {
         // and make updates based on rules
         // TODO: don't double borrow here
         let mut cur_idx = 0;
-        for cell in &mut self.cell_swarm {
-            if cell != &mut self.cell_swarm[cur_idx] {
-                println!("Found other cell!");
-            }
-            cur_idx += 1;
-        }
+        for i in 0..self.cell_swarm.len(){
+            for j in 0..self.cell_swarm.len(){
+                if i == j {
+                    continue;
+                }
 
+            }
+        }
     }
 }
 impl Board {
