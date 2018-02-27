@@ -45,7 +45,6 @@ impl World<Color> for FireflyWorld {
         // if fireflies flash at the same time, then they move closer
         // if they are within a close enough radius, birth new firefly
 
-        // if a firefly's life is <= 0, remove it
         // Iterate to end of list
         let mut last_index: usize = self.firefly_swarm.len();
         let mut index: usize = 0;
