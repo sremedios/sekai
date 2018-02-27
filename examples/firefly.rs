@@ -222,10 +222,8 @@ mod test {
 
         let mut a = Firefly::new(2);
         let mut b = Firefly::new(2);
-        a.pos.push(3.0);
-        a.pos.push(4.0);
-        b.pos.push(0.0);
-        b.pos.push(0.0);
+        a.pos = vec![3.0, 4.0]
+        b.pos = vec![0.0, 0.0]
         assert_eq!(world.get_dist(&a, &b), 5.0);
     }
 }
