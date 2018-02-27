@@ -39,10 +39,11 @@ impl AntWorld {
     }
 
     fn new() -> Self {
-        AntWorld{
+        AntWorld {
             food_locations: Vec::new(),
             pheromone_trail: Vec::new(),
             ant_swarm: Vec::new(),
+            ant_hive: (0.0, 0.0),
         }
     }
 }
@@ -50,15 +51,13 @@ impl AntWorld {
 #[derive(Debug)]
 struct Ant {
     x: f32,
-    y: f32, // 2D world
-    stride: f32, // how much the ant travels per tick
+    y: f32,                         // 2D world
+    stride: f32,                    // how much the ant travels per tick
     pheromone_sense_threshold: u32, // minimum value needed to follow pheromone trail
 }
 impl Entity<Pheromone> for Ant {
     // todo: receive message, send message,
-    fn update(&mut self, world: &World<Pheromone>) {
-        
-    }
+    fn update(&mut self, world: &World<Pheromone>) {}
     fn receive_message(&mut self, message: Pheromone) {
         // TODO increase current position by some step size in the
         // direction of the message.  Maybe the world should decide where the
@@ -71,11 +70,11 @@ impl Entity<Pheromone> for Ant {
 }
 impl Ant {
     fn new() -> Self {
-        Ant{
+        Ant {
             x: 0_f32,
             y: 0_f32,
-          stride: 1_f32,
-          pheromone_sense_threshold: 2_u32,
+            stride: 1_f32,
+            pheromone_sense_threshold: 2_u32,
         }
     }
 }
