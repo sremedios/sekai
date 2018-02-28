@@ -98,12 +98,16 @@ impl FireflyWorld {
 
     //This outputs the midpoint between two fireflies.
     fn calc_midpoint(&mut self, ff1:&Firefly, ff2:&Firefly) -> Vec<f32> {
-        let mut newPos = Vec::with_capacity((ff1.pos).len());
-        for i in 0..(ff1.pos).len()
-        {
-           newPos.push((ff2.pos[i] + ff1.pos[i])/2_f32);
-        }
-       newPos
+        //Iterate over the coordinates in firefly 1.
+        ff1
+            .pos
+            .iter()
+            //Make tuples of coordinate components.
+            .zip(ff2.pos.iter())
+            //Find mid-point with respect to each component.
+            .map(|(ff1_coord, ff2_coord)| {(ff1_coord + ff2_coord)/2_f32})
+            //Yield new vector of the mid-points.
+            .collect()
     }
 
 }
@@ -168,12 +172,15 @@ impl Firefly {
 
     //This outputs a unit vector which points from self to other.
     fn unit_step(&mut self, other:&Firefly, dist:f32) {
-        let mut newPos = Vec::with_capacity((self.pos).len());
-        for i in 0..(self.pos).len()
-        {
-            newPos.push((other.pos[i] - self.pos[i])/dist);
-        }
-        self.pos = newPos;
+        self.pos = self
+                       .pos
+                       .iter()
+                       //Collect respective position components.
+                       .zip(other.pos.iter())
+                       //Yield new component, scaled appropriately.
+                       .map(|(p1_i, p2_i)| {(p2_i - p1_i)/dist})
+                       //Yield new vector.
+                       .collect();
     }
 
 }
@@ -264,11 +271,11 @@ fn test_unit_step(){
     let mut b = Firefly::new(2);
     a.pos.push(0.0);
     a.pos.push(0.0);
-    b.pos.push(3.0);
-    b.pos.push(4.0);
+    b.pos.push(1.0);
+    b.pos.push(2.0);
     let d = world.get_dist(&a, &b);
     a.unit_step(&b, d);
-    assert_eq!(a.pos, vec![3_f32/5_f32, 4_f32/5_f32]);
+    assert_eq!(a.pos, vec![1_f32/5_f32.sqrt(), 2_f32/5_f32.sqrt()]);
 }
 
 #[cfg(test)]
@@ -278,12 +285,14 @@ fn test_midpoint(){
         firefly_swarm: Vec::new(),
     };
 
-    let mut a = Firefly::new(2);
-    let mut b = Firefly::new(2);
-    a.pos.push(0.0);
-    a.pos.push(0.0);
-    b.pos.push(3.0);
-    b.pos.push(4.0);
+    let mut a = Firefly::new(3);
+    let mut b = Firefly::new(3);
+    a.pos.push(3.0);
+    a.pos.push(4.0);
+    a.pos.push(5.0);
+    b.pos.push(0.0);
+    b.pos.push(0.0);
+    b.pos.push(0.0);
     let mid = world.calc_midpoint(&a, &b);
-    assert_eq!(mid, vec![1.5_f32, 2_f32]);
+    assert_eq!(mid, vec![1.5_f32, 2_f32, 2.5_f32]);
 }
