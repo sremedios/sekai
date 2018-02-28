@@ -97,14 +97,13 @@ impl FireflyWorld {
     }
 
     //This outputs the midpoint between two fireflies.
-    fn calc_midpoint(&mut self, ff1:&Firefly, ff2:&Firefly, dist:f32) -> Vec<f32> {
+    fn calc_midpoint(&mut self, ff1:&Firefly, ff2:&Firefly) -> Vec<f32> {
         let mut newPos = Vec::with_capacity((ff1.pos).len());
         for i in 0..(ff1.pos).len()
         {
-            newPos.push((ff2.pos[i] - ff1.pos[i])/2_f32);
+           newPos.push((ff2.pos[i] + ff1.pos[i])/2_f32);
         }
-
-        newPos
+       newPos
     }
 
 }
@@ -167,7 +166,6 @@ impl Firefly {
         }
     }
 
-
     //This outputs a unit vector which points from self to other.
     fn unit_step(&mut self, other:&Firefly, dist:f32) {
         let mut newPos = Vec::with_capacity((self.pos).len());
@@ -176,18 +174,6 @@ impl Firefly {
             newPos.push((other.pos[i] - self.pos[i])/dist);
         }
         self.pos = newPos;
-
-    }
-
-    //This outputs a unit vector which points from self to other.
-    fn unit_step(&mut self, other:&Firefly, dist:f32) {
-        let mut newPos = Vec::with_capacity((self.pos).len());
-        for i in 0..(self.pos).len()
-        {
-            newPos.push((other.pos[i] - self.pos[i])/dist);
-        }
-        self.pos = newPos;
-
     }
 
 }
@@ -234,6 +220,7 @@ impl Entity<Color> for Firefly {
 fn main() {
     println!("This is the main function");
 }
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -259,29 +246,10 @@ mod test {
 
         let mut a = Firefly::new(2);
         let mut b = Firefly::new(2);
-        a.pos = vec![3.0, 4.0]
-        b.pos = vec![0.0, 0.0]
+        a.pos = vec![3.0, 4.0];
+        b.pos = vec![0.0, 0.0];
         assert_eq!(world.get_dist(&a, &b), 5.0);
     }
-}
-
-
-#[cfg(test)]
-#[test]
-fn test_unit_step(){
-    let mut world = FireflyWorld {
-        firefly_swarm: Vec::new(),
-    };
-
-    let mut a = Firefly::new(2);
-    let mut b = Firefly::new(2);
-    a.pos.push(0.0);
-    a.pos.push(0.0);
-    b.pos.push(3.0);
-    b.pos.push(4.0);
-    let d = world.get_dist(&a, &b);
-    a.unit_step(&b, d);
-    assert_eq!(a.pos, vec![3_f32/5_f32, 4_f32/5_f32]);
 }
 
 
@@ -316,7 +284,6 @@ fn test_midpoint(){
     a.pos.push(0.0);
     b.pos.push(3.0);
     b.pos.push(4.0);
-    let d = world.get_dist(&a, &b);
-    let mid = world.calc_midpoint(&a, &b, d);
+    let mid = world.calc_midpoint(&a, &b);
     assert_eq!(mid, vec![1.5_f32, 2_f32]);
 }
