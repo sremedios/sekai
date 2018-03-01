@@ -26,9 +26,11 @@ struct FireflyWorld {
 impl World<Color> for FireflyWorld {
     // todo: figure out if a firefly can see another firefly
     fn update(&mut self) {
+        println!("*** UPDATING WORLD ***");
         // loop through all fireflies
-        let num_fireflies = self.num_entities();
-        for i in 0..num_fireflies {
+        let mut num_fireflies = self.num_entities();
+        let mut i = 0;
+        while i < num_fireflies {
 
             // call each firefly's update function
             let mut cur_firefly = self.firefly_swarm[i].clone();
@@ -39,10 +41,12 @@ impl World<Color> for FireflyWorld {
             let death = self.firefly_swarm[i].lifetime == 0;
             if death {
                 self.remove_entity(i);
-                continue;
+                num_fireflies -=1;
+                // purposefully skipping increment of i
+                // This means that after swap_remove, we still check the new firefly
+                // at the current position
+                continue; 
             }
-
-            //println!("Lifetime: {}", self.firefly_swarm[i].lifetime);
 
             if num_fireflies <= 1{
                 println!("There are only {} fireflies left; no comparisons to make.",
@@ -59,11 +63,13 @@ impl World<Color> for FireflyWorld {
                 // check for distances
                 if self.get_dist(&self.firefly_swarm[i],
                                  &self.firefly_swarm[j]) < Firefly::SIGHT_RANGE {
-                    //println!("\nClose with {:?} and {:?}", 
-                             //self.firefly_swarm[i].pos, 
-                             //self.firefly_swarm[j].pos);
+                    println!("Close with {:?} and {:?}", 
+                             self.firefly_swarm[i].pos, 
+                             self.firefly_swarm[j].pos);
                 }
             }
+            // incremen to simulate for loop
+            i += 1;
         }
 
 
@@ -279,19 +285,30 @@ mod test {
         world.add_entity(Firefly::new_at(vec![5_f32,12_f32]));
         world.add_entity(Firefly::new_at(vec![0_f32,0_f32]));
         world.add_entity(Firefly::new_at(vec![0_f32,1_f32]));
+        world.add_entity(Firefly::new_at(vec![7_f32,10_f32]));
 
         // set different lifetimes for each firefly
-        world.firefly_swarm[0].lifetime = 10;
-        world.firefly_swarm[1].lifetime = 20;
-        world.firefly_swarm[2].lifetime = 30;
+        world.firefly_swarm[0].lifetime = 2;
+        world.firefly_swarm[1].lifetime = 3;
+        world.firefly_swarm[2].lifetime = 4;
+        world.firefly_swarm[3].lifetime = 11;
 
-        // update for 10 ticks and check how many fireflies remain
-        for i in 0..3 {
-            for _ in 0..10 {
-                world.update();
-            }
-            assert_eq!(world.num_entities(), 2-i);
+        // check updates for death
+        assert_eq!(world.num_entities(), 4);
+        world.update();
+        assert_eq!(world.num_entities(), 4);
+        world.update();
+        assert_eq!(world.num_entities(), 3);
+        world.update();
+        assert_eq!(world.num_entities(), 2);
+        world.update();
+        assert_eq!(world.num_entities(), 1);
+        for _ in 0..6 {
+            world.update();
         }
+        assert_eq!(world.num_entities(), 1);
+        world.update();
+        assert_eq!(world.num_entities(), 0);
     }
 
     #[test]
