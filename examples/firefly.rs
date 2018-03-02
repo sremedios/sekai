@@ -27,37 +27,25 @@ impl World<Color> for FireflyWorld {
     // todo: figure out if a firefly can see another firefly
     fn update(&mut self) {
         println!("*** UPDATING WORLD ***");
-        // loop through all fireflies
-        let mut num_fireflies = self.num_entities();
-        let mut i = 0;
-        while i < num_fireflies {
 
+        // Update all fireflies
+        let num_fireflies = self.num_entities();
+        for i in 0..num_fireflies {
             // call each firefly's update function
             let mut cur_firefly = self.firefly_swarm[i].clone();
             cur_firefly.update(self as &mut World<Color>);
             self.firefly_swarm[i] = cur_firefly;
+        }
 
-            // remove dead fireflies
-            let death = self.firefly_swarm[i].lifetime == 0;
-            if death {
-                self.remove_entity(i);
-                num_fireflies -=1;
-                // purposefully skipping increment of i
-                // This means that after swap_remove, we still check the new firefly
-                // at the current position
-                continue; 
-            }
+        // Remove dead fireflies
+        self.firefly_swarm.retain(|ref firefly| firefly.lifetime != 0);
 
-            if num_fireflies <= 1{
-                println!("There are only {} fireflies left; no comparisons to make.",
-                         num_fireflies);
-                return;
-            }
-
-            // compare to other fireflies
+        let num_fireflies = self.num_entities();
+        // Compare remaining fireflies
+        for i in 0..num_fireflies {
             for j in (i+1)..num_fireflies{
-                // skip comparison to self or dead fireflies
-                if i == j || self.firefly_swarm[j].lifetime == 0{
+                // skip comparison to self
+                if i == j {
                     continue;
                 }
                 // check for distances
@@ -68,10 +56,8 @@ impl World<Color> for FireflyWorld {
                              self.firefly_swarm[j].pos);
                 }
             }
-            // incremen to simulate for loop
-            i += 1;
         }
-
+        
 
 
 
