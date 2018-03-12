@@ -38,28 +38,40 @@ impl World<Color> for FireflyWorld {
         }
 
         // Remove dead fireflies
-        self.firefly_swarm.retain(|ref firefly| firefly.lifetime != 0);
+        self.firefly_swarm
+            .retain(|ref firefly| firefly.lifetime != 0);
 
-        let num_fireflies = self.num_entities();
         // Compare remaining fireflies
+        let num_fireflies = self.num_entities();
         for i in 0..num_fireflies {
-            for j in (i+1)..num_fireflies{
+            for j in (i + 1)..num_fireflies {
                 // skip comparison to self
                 if i == j {
                     continue;
                 }
                 // check for distances
-                if self.get_dist(&self.firefly_swarm[i],
-                                 &self.firefly_swarm[j]) < Firefly::SIGHT_RANGE {
-                    println!("Close with {:?} and {:?}", 
-                             self.firefly_swarm[i].pos, 
-                             self.firefly_swarm[j].pos);
+                let dist = self.get_dist(&self.firefly_swarm[i], &self.firefly_swarm[j]);
+                let close: bool = dist < Firefly::SIGHT_RANGE;
+                if close {
+                    println!(
+                        "Close with {:?} and {:?}",
+                        self.firefly_swarm[i].pos, self.firefly_swarm[j].pos
+                    );
+
+                    // TODO: make this smarter.  Queue up new positions?
+                    let new_pos_i =
+                        (&self.firefly_swarm[i]).unit_step(&self.firefly_swarm[j], dist);
+                    let new_pos_j =
+                        (&self.firefly_swarm[j]).unit_step(&self.firefly_swarm[i], dist);
+                    self.firefly_swarm[i].update_position(&new_pos_i);
+                    self.firefly_swarm[j].update_position(&new_pos_j);
+                    println!(
+                        "New positions: {:?} and {:?}",
+                        self.firefly_swarm[i].pos, self.firefly_swarm[j].pos
+                    );
                 }
             }
         }
-        
-
-
 
         // Iterate through all fireflies in a specifc range,
         // average color
@@ -111,7 +123,7 @@ impl FireflyWorld {
     }
 
     //This outputs the midpoint between two fireflies.
-    fn calc_midpoint(&mut self, ff1:&Firefly, ff2:&Firefly) -> Vec<f32> {
+    fn calc_midpoint(&mut self, ff1: &Firefly, ff2: &Firefly) -> Vec<f32> {
         //Iterate over the coordinates in firefly 1.
         ff1
             .pos
@@ -123,7 +135,6 @@ impl FireflyWorld {
             //Yield new vector of the mid-points.
             .collect()
     }
-
 }
 
 #[derive(Clone, Debug)]
@@ -172,7 +183,6 @@ impl Firefly {
     // associated const for sight range
     const SIGHT_RANGE: f32 = 5_f32;
 
-
     // constructor
     fn new(num_dimensions: usize) -> Self {
         Firefly {
@@ -200,18 +210,22 @@ impl Firefly {
     }
 
     //This outputs a unit vector which points from self to other.
-    fn unit_step(&mut self, other:&Firefly, dist:f32) {
-        self.pos = self
-                       .pos
-                       .iter()
-                       //Collect respective position components.
-                       .zip(other.pos.iter())
-                       //Yield new component, scaled appropriately.
-                       .map(|(p1_i, p2_i)| {(p2_i - p1_i)/dist})
-                       //Yield new vector.
-                       .collect();
+    fn unit_step(&self, other: &Firefly, dist: f32) -> Vec<f32> {
+        self.pos
+            .iter()
+            .zip(other.pos.iter())
+            .map(|(p1_i, p2_i)| (p2_i - p1_i) / dist)
+            .collect()
     }
 
+    // updates this firefly's position by some calculated delta
+    fn update_position(&mut self, delta: &[f32]) {
+        self.pos = self.pos
+            .iter()
+            .zip(delta.iter())
+            .map(|(a, b)| a + b)
+            .collect();
+    }
 }
 
 /// Fireflies communicate with lights, represented in the
@@ -222,7 +236,7 @@ impl Entity<Color> for Firefly {
         // Sanity check to make sure we dont update dead fireflies
         if self.lifetime == 0 {
             // grave of the fireflies
-            // lol steven 
+            // lol steven
             return;
         }
         // Lose some life
@@ -268,10 +282,10 @@ mod test {
         };
 
         // add some test fireflies
-        world.add_entity(Firefly::new_at(vec![5_f32,12_f32]));
-        world.add_entity(Firefly::new_at(vec![0_f32,0_f32]));
-        world.add_entity(Firefly::new_at(vec![0_f32,1_f32]));
-        world.add_entity(Firefly::new_at(vec![7_f32,10_f32]));
+        world.add_entity(Firefly::new_at(vec![5_f32, 12_f32]));
+        world.add_entity(Firefly::new_at(vec![0_f32, 0_f32]));
+        world.add_entity(Firefly::new_at(vec![0_f32, 1_f32]));
+        world.add_entity(Firefly::new_at(vec![7_f32, 10_f32]));
 
         // set different lifetimes for each firefly
         world.firefly_swarm[0].lifetime = 2;
@@ -311,9 +325,8 @@ mod test {
         assert_eq!(world.get_dist(&a, &b), 5.0);
     }
 
-
     #[test]
-    fn test_unit_step(){
+    fn test_unit_step() {
         let world = FireflyWorld {
             firefly_swarm: Vec::new(),
         };
@@ -325,12 +338,13 @@ mod test {
         b.pos.push(1.0);
         b.pos.push(2.0);
         let d = world.get_dist(&a, &b);
-        a.unit_step(&b, d);
-        assert_eq!(a.pos, vec![1_f32/5_f32.sqrt(), 2_f32/5_f32.sqrt()]);
+        let new_pos = a.unit_step(&b, d);
+        a.pos = new_pos;
+        assert_eq!(a.pos, vec![1_f32 / 5_f32.sqrt(), 2_f32 / 5_f32.sqrt()]);
     }
 
     #[test]
-    fn test_midpoint(){
+    fn test_midpoint() {
         let mut world = FireflyWorld {
             firefly_swarm: Vec::new(),
         };
