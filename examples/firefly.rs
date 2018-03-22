@@ -129,6 +129,11 @@ impl FireflyWorld {
             .collect()
     }
 
+    // serializes fireflyswarm
+    fn serialize(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string(&self.firefly_swarm)
+    }
+
     // calculates Euclidean distance between two fireflys in n dimensional space
     fn get_dist(vec_a: &[f32], vec_b: &[f32]) -> f32 {
         // Iterate over coordinates in firefly a
@@ -383,7 +388,9 @@ mod test {
         world.add_entity(Firefly::new_at(vec![0_f32, 0_f32]));
         world.add_entity(Firefly::new_at(vec![0_f32, 1_f32]));
         world.add_entity(Firefly::new_at(vec![7_f32, 10_f32]));
-        let serialized_world = serde_json::to_string(&world.firefly_swarm).expect("Failed to serialize firefly world");
+        //let serialized_world =
+        //serde_json::to_string(&world.firefly_swarm).expect("Failed to serialize firefly world");
+        let serialized_world = world.serialize().expect("Failed to serialize");
         println!("{}", serialized_world);
     }
 }
