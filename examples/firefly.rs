@@ -15,7 +15,14 @@
  * a straight optimization.
  *
  */
+
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
+
 extern crate sekai;
+
 use sekai::world::World;
 use sekai::entity::Entity;
 
@@ -138,7 +145,7 @@ impl FireflyWorld {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 struct Color {
     red: f32,
     green: f32,
@@ -169,7 +176,7 @@ impl<'a> std::ops::Mul<f32> for &'a Color {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 struct Firefly {
     pos: Vec<f32>,
     color: Color,            // RGB
@@ -366,5 +373,17 @@ mod test {
         b.pos.push(0.0);
         let mid = world.calc_midpoint(&a, &b);
         assert_eq!(mid, vec![1.5_f32, 2_f32, 2.5_f32]);
+    }
+    #[test]
+    fn test_serialize() {
+        let mut world = FireflyWorld {
+            firefly_swarm: Vec::new(),
+        };
+        world.add_entity(Firefly::new_at(vec![5_f32, 12_f32]));
+        world.add_entity(Firefly::new_at(vec![0_f32, 0_f32]));
+        world.add_entity(Firefly::new_at(vec![0_f32, 1_f32]));
+        world.add_entity(Firefly::new_at(vec![7_f32, 10_f32]));
+        let serialized_world = serde_json::to_string(&world.firefly_swarm).expect("Failed to serialize firefly world");
+        println!("{}", serialized_world);
     }
 }
