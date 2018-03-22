@@ -50,7 +50,8 @@ impl World<Color> for FireflyWorld {
                     continue;
                 }
                 // check for distances
-                let dist = self.get_dist(&self.firefly_swarm[i], &self.firefly_swarm[j]);
+                let dist =
+                    FireflyWorld::get_dist(&self.firefly_swarm[i].pos, &self.firefly_swarm[j].pos);
                 let close: bool = dist < Firefly::SIGHT_RANGE;
                 if close {
                     println!(
@@ -58,11 +59,11 @@ impl World<Color> for FireflyWorld {
                         self.firefly_swarm[i].pos, self.firefly_swarm[j].pos
                     );
 
-                    // TODO: make this smarter.  Queue up new positions?
+                    // Fireflies step towards each other
                     let new_pos_i =
-                        (&self.firefly_swarm[i]).unit_step(&self.firefly_swarm[j], dist);
+                        (&self.firefly_swarm[i]).unit_step(&self.firefly_swarm[j].pos, dist);
                     let new_pos_j =
-                        (&self.firefly_swarm[j]).unit_step(&self.firefly_swarm[i], dist);
+                        (&self.firefly_swarm[j]).unit_step(&self.firefly_swarm[i].pos, dist);
                     self.firefly_swarm[i].update_position(&new_pos_i);
                     self.firefly_swarm[j].update_position(&new_pos_j);
                     println!(
@@ -107,21 +108,6 @@ impl FireflyWorld {
         self.firefly_swarm.swap_remove(idx);
     }
 
-    // calculates Euclidean distance between two fireflys in n dimensional space
-    fn get_dist(&self, firefly_a: &Firefly, firefly_b: &Firefly) -> f32 {
-        // Iterate over coordinates in firefly a
-        firefly_a.pos
-            .iter()
-            // Compare to coordinates in firefly b
-            .zip(firefly_b.pos.iter())
-            // Square all the differences
-            .map(|(a_coord, b_coord)| (a_coord - b_coord).powi(2))
-            // Sum the squares
-            .sum::<f32>()
-            // Take the square root
-            .sqrt()
-    }
-
     //This outputs the midpoint between two fireflies.
     fn calc_midpoint(&mut self, ff1: &Firefly, ff2: &Firefly) -> Vec<f32> {
         //Iterate over the coordinates in firefly 1.
@@ -134,6 +120,21 @@ impl FireflyWorld {
             .map(|(ff1_coord, ff2_coord)| {(ff1_coord + ff2_coord)/2_f32})
             //Yield new vector of the mid-points.
             .collect()
+    }
+
+    // calculates Euclidean distance between two fireflys in n dimensional space
+    fn get_dist(vec_a: &[f32], vec_b: &[f32]) -> f32 {
+        // Iterate over coordinates in firefly a
+        vec_a
+            .iter()
+            // Compare to coordinates in firefly b
+            .zip(vec_b.iter())
+            // Square all the differences
+            .map(|(a_coord, b_coord)| (a_coord - b_coord).powi(2))
+            // Sum the squares
+            .sum::<f32>()
+            // Take the square root
+            .sqrt()
     }
 }
 
@@ -156,14 +157,14 @@ impl Color {
     }
 }
 
-impl std::ops::Mul<f32> for Color {
+impl<'a> std::ops::Mul<f32> for &'a Color {
     type Output = Color;
-    fn mul(self, rhs: f32) -> Self {
+    fn mul(self, rhs: f32) -> Self::Output {
         Color {
             red: self.red * rhs,
             green: self.green * rhs,
             blue: self.blue * rhs,
-            pos: self.pos,
+            pos: (self.pos).clone(),
         }
     }
 }
@@ -210,10 +211,10 @@ impl Firefly {
     }
 
     //This outputs a unit vector which points from self to other.
-    fn unit_step(&self, other: &Firefly, dist: f32) -> Vec<f32> {
+    fn unit_step(&self, other: &[f32], dist: f32) -> Vec<f32> {
         self.pos
             .iter()
-            .zip(other.pos.iter())
+            .zip(other.iter())
             .map(|(p1_i, p2_i)| (p2_i - p1_i) / dist)
             .collect()
     }
@@ -259,12 +260,18 @@ impl Entity<Color> for Firefly {
         let alpha: f32 = 1e-2;
         // If all message lights that were received were averaged by the world:
         // Scale the averaged message by some alpha step size
-        self.color = message * alpha;
+        self.color = &message * alpha;
         // If received, reset cur_flash_cooldown
         self.cur_flash_cooldown = self.flash_cooldown;
         // how to update flash rate?  should this even be parameterized?
 
         // TODO: update position based on the message
+
+        // Fireflies step towards each other
+        let dist = FireflyWorld::get_dist(&self.pos, &message.pos);
+        let new_pos = (&self).unit_step(&message.pos, dist);
+        self.update_position(&new_pos);
+        println!("New position: {:?}", self.pos,);
     }
 }
 
@@ -322,7 +329,7 @@ mod test {
         a.pos = vec![3.0, 4.0];
         b.pos = vec![0.0, 0.0];
 
-        assert_eq!(world.get_dist(&a, &b), 5.0);
+        assert_eq!(FireflyWorld::get_dist(&a.pos, &b.pos), 5.0);
     }
 
     #[test]
@@ -337,8 +344,8 @@ mod test {
         a.pos.push(0.0);
         b.pos.push(1.0);
         b.pos.push(2.0);
-        let d = world.get_dist(&a, &b);
-        let new_pos = a.unit_step(&b, d);
+        let d = FireflyWorld::get_dist(&a.pos, &b.pos);
+        let new_pos = a.unit_step(&b.pos, d);
         a.pos = new_pos;
         assert_eq!(a.pos, vec![1_f32 / 5_f32.sqrt(), 2_f32 / 5_f32.sqrt()]);
     }
