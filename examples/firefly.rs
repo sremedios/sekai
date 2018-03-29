@@ -21,10 +21,8 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 
-extern crate sekai;
 extern crate rand;
-
-
+extern crate sekai;
 
 use sekai::world::World;
 use sekai::entity::Entity;
@@ -133,7 +131,6 @@ impl FireflyWorld {
                 self.add_entity(firefly);
             }
         }
-
     }
     //This outputs the midpoint between two fireflies.
     fn calc_midpoint(&mut self, ff1: &Firefly, ff2: &Firefly) -> Vec<f32> {
@@ -260,7 +257,6 @@ impl Firefly {
             .map(|(a, b)| a + b)
             .collect();
     }
-
 }
 
 /// Fireflies communicate with lights, represented in the
@@ -403,7 +399,6 @@ mod test {
         assert_eq!(mid, vec![1.5_f32, 2_f32, 2.5_f32]);
     }
 
-
     #[test]
     fn test_create_swarm() {
         let mut world = FireflyWorld {
@@ -412,6 +407,7 @@ mod test {
 
         world.create_swarm(15, 1);
         assert_eq!(world.num_entities(), 15);
+    }
 
     #[test]
     fn test_serialize() {
