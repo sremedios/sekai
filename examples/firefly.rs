@@ -22,8 +22,10 @@ extern crate serde_derive;
 extern crate serde_json;
 
 extern crate rand;
+//extern crate rayon;
 extern crate sekai;
 
+//use rayon::prelude::*;
 use sekai::world::World;
 use sekai::entity::Entity;
 use rand::distributions::Normal;
@@ -64,10 +66,12 @@ impl World<Color> for FireflyWorld {
                     FireflyWorld::get_dist(&self.firefly_swarm[i].pos, &self.firefly_swarm[j].pos);
                 let close: bool = dist < Firefly::SIGHT_RANGE;
                 if close {
+                    /*
                     println!(
                         "Close with {:?} and {:?}",
                         self.firefly_swarm[i].pos, self.firefly_swarm[j].pos
                     );
+                    */
 
                     // Fireflies step towards each other
                     let new_pos_i =
@@ -76,10 +80,12 @@ impl World<Color> for FireflyWorld {
                         (&self.firefly_swarm[j]).unit_step(&self.firefly_swarm[i].pos, dist);
                     self.firefly_swarm[i].update_position(&new_pos_i);
                     self.firefly_swarm[j].update_position(&new_pos_j);
+                    /*
                     println!(
                         "New positions: {:?} and {:?}",
                         self.firefly_swarm[i].pos, self.firefly_swarm[j].pos
                     );
+                    */
                 }
             }
         }
@@ -306,7 +312,16 @@ impl Entity<Color> for Firefly {
 }
 
 fn main() {
-    println!("This is the main function");
+    let mut world = FireflyWorld {
+        firefly_swarm: Vec::new(),
+    };
+
+    // create a swarm
+    world.create_swarm(1e4 as usize, 1);
+
+    for _ in 0..10 {
+        world.update();
+    }
 }
 
 #[cfg(test)]
@@ -318,34 +333,12 @@ mod test {
             firefly_swarm: Vec::new(),
         };
 
-        // add some test fireflies
-        world.add_entity(Firefly::new_at(vec![5_f32, 12_f32]));
-        world.add_entity(Firefly::new_at(vec![0_f32, 0_f32]));
-        world.add_entity(Firefly::new_at(vec![0_f32, 1_f32]));
-        world.add_entity(Firefly::new_at(vec![7_f32, 10_f32]));
+        // create a swarm
+        world.create_swarm(10000, 1);
 
-        // set different lifetimes for each firefly
-        world.firefly_swarm[0].lifetime = 2;
-        world.firefly_swarm[1].lifetime = 3;
-        world.firefly_swarm[2].lifetime = 4;
-        world.firefly_swarm[3].lifetime = 11;
-
-        // check updates for death
-        assert_eq!(world.num_entities(), 4);
-        world.update();
-        assert_eq!(world.num_entities(), 4);
-        world.update();
-        assert_eq!(world.num_entities(), 3);
-        world.update();
-        assert_eq!(world.num_entities(), 2);
-        world.update();
-        assert_eq!(world.num_entities(), 1);
-        for _ in 0..6 {
+        for _ in 0..10 {
             world.update();
         }
-        assert_eq!(world.num_entities(), 1);
-        world.update();
-        assert_eq!(world.num_entities(), 0);
     }
 
     #[test]
