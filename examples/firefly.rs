@@ -22,9 +22,14 @@ extern crate serde_derive;
 extern crate serde_json;
 
 extern crate sekai;
+extern crate rand;
+
+
 
 use sekai::world::World;
 use sekai::entity::Entity;
+use rand::distributions::Normal;
+use rand::distributions::IndependentSample;
 
 #[derive(Debug)]
 struct FireflyWorld {
@@ -115,6 +120,21 @@ impl FireflyWorld {
         self.firefly_swarm.swap_remove(idx);
     }
 
+    fn create_swarm(&mut self, n: usize, distribution: usize) {
+        if distribution == 1 {
+            let mut rng = rand::thread_rng();
+
+            // mean 0, standard deviation 100:
+            let normal = Normal::new(0.0, 100.0);
+            for _ in 0..n {
+                let position: Vec<f32> =
+                    (0..3).map(|_| normal.ind_sample(&mut rng) as f32).collect();
+                let firefly = Firefly::new_at(position);
+                self.add_entity(firefly);
+            }
+        }
+
+    }
     //This outputs the midpoint between two fireflies.
     fn calc_midpoint(&mut self, ff1: &Firefly, ff2: &Firefly) -> Vec<f32> {
         //Iterate over the coordinates in firefly 1.
@@ -223,6 +243,7 @@ impl Firefly {
     }
 
     //This outputs a unit vector which points from self to other.
+
     fn unit_step(&self, other: &[f32], dist: f32) -> Vec<f32> {
         self.pos
             .iter()
@@ -239,6 +260,7 @@ impl Firefly {
             .map(|(a, b)| a + b)
             .collect();
     }
+
 }
 
 /// Fireflies communicate with lights, represented in the
@@ -356,6 +378,7 @@ mod test {
         a.pos.push(0.0);
         b.pos.push(1.0);
         b.pos.push(2.0);
+
         let d = FireflyWorld::get_dist(&a.pos, &b.pos);
         let new_pos = a.unit_step(&b.pos, d);
         a.pos = new_pos;
@@ -379,6 +402,17 @@ mod test {
         let mid = world.calc_midpoint(&a, &b);
         assert_eq!(mid, vec![1.5_f32, 2_f32, 2.5_f32]);
     }
+
+
+    #[test]
+    fn test_create_swarm() {
+        let mut world = FireflyWorld {
+            firefly_swarm: Vec::new(),
+        };
+
+        world.create_swarm(15, 1);
+        assert_eq!(world.num_entities(), 15);
+
     #[test]
     fn test_serialize() {
         let mut world = FireflyWorld {
