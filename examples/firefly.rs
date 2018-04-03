@@ -1,6 +1,6 @@
 /*
  *
- *Synchronize flashing of a firefly swarm
+ * Synchronize flashing of a firefly swarm
  *
  * Fireflies are stored as a swarm in FireflyWorld.
  * The whole swarm is a vector, mapping an index to the firefly object.
@@ -22,16 +22,16 @@ extern crate serde_derive;
 extern crate serde_json;
 
 extern crate rand;
-//extern crate rayon;
+extern crate rayon;
 extern crate sekai;
 
-//use rayon::prelude::*;
+use rayon::prelude::*;
 use sekai::world::World;
 use sekai::entity::Entity;
 use rand::distributions::Normal;
 use rand::distributions::IndependentSample;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct FireflyWorld {
     firefly_swarm: Vec<Firefly>,
 }
@@ -41,6 +41,13 @@ impl World<Color> for FireflyWorld {
         println!("*** UPDATING WORLD ***");
 
         // Update all fireflies
+        // TODO: use iterator for update. currently dosn't work
+        /*
+        self.firefly_swarm
+            .par_iter_mut()
+            .map(|ref mut firefly| firefly.update((self.clone()) as &mut World<Color>));
+        */
+
         let num_fireflies = self.num_entities();
         for i in 0..num_fireflies {
             // call each firefly's update function
@@ -54,38 +61,27 @@ impl World<Color> for FireflyWorld {
             .retain(|ref firefly| firefly.lifetime != 0);
 
         // Compare remaining fireflies
-        let num_fireflies = self.num_entities();
-        for i in 0..num_fireflies {
-            for j in (i + 1)..num_fireflies {
-                // skip comparison to self
-                if i == j {
+
+        // clone all fireflies
+        let firefly_swarm_b = self.firefly_swarm.clone();
+        //let mut iter = self.firefly_swarm.iter_mut();
+
+        for (index_a, firefly_a) in self.firefly_swarm.iter_mut().enumerate() {
+            for (index_b, firefly_b) in firefly_swarm_b.iter().enumerate() {
+                if index_a == index_b {
                     continue;
                 }
-                // check for distances
-                let dist =
-                    FireflyWorld::get_dist(&self.firefly_swarm[i].pos, &self.firefly_swarm[j].pos);
-                let close: bool = dist < Firefly::SIGHT_RANGE;
+                let dist = FireflyWorld::get_dist(&firefly_a.pos, &firefly_b.pos);
+                let close: bool = dist < Firefly::SIGHT_RANGE && firefly_b.cur_flash_cooldown == 0;
+
                 if close {
-                    /*
-                    println!(
-                        "Close with {:?} and {:?}",
-                        self.firefly_swarm[i].pos, self.firefly_swarm[j].pos
-                    );
-                    */
+                    println!("Close with {:?} and {:?}", firefly_a.pos, firefly_b.pos);
 
                     // Fireflies step towards each other
-                    let new_pos_i =
-                        (&self.firefly_swarm[i]).unit_step(&self.firefly_swarm[j].pos, dist);
-                    let new_pos_j =
-                        (&self.firefly_swarm[j]).unit_step(&self.firefly_swarm[i].pos, dist);
-                    self.firefly_swarm[i].update_position(&new_pos_i);
-                    self.firefly_swarm[j].update_position(&new_pos_j);
-                    /*
-                    println!(
-                        "New positions: {:?} and {:?}",
-                        self.firefly_swarm[i].pos, self.firefly_swarm[j].pos
-                    );
-                    */
+                    let new_pos_a = (&firefly_a).unit_step(&firefly_b.pos, dist);
+
+                    firefly_a.update_position(&new_pos_a);
+                    println!("New position: {:?}", firefly_a.pos);
                 }
             }
         }
@@ -224,10 +220,10 @@ impl Firefly {
         Firefly {
             pos: Vec::with_capacity(num_dimensions),
             color: Color::new(num_dimensions),
-            flash_cooldown: 100,     // TODO: placeholder
-            cur_flash_cooldown: 100, // TODO: placeholder
+            flash_cooldown: 10,      // TODO: placeholder
+            cur_flash_cooldown: 10,  // TODO: placeholder
             flash_rate: 1,           // TODO: placeholder
-            lifetime: 500,           // TODO: placeholder
+            lifetime: 50,            // TODO: placeholder
             reproduction_range: 5.0, // TODO: placeholder
         }
     }
@@ -237,10 +233,10 @@ impl Firefly {
         Firefly {
             pos: pos.clone(),
             color: Color::new(pos.len()),
-            flash_cooldown: 100,     // TODO: placeholder
-            cur_flash_cooldown: 100, // TODO: placeholder
+            flash_cooldown: 10,      // TODO: placeholder
+            cur_flash_cooldown: 10,  // TODO: placeholder
             flash_rate: 1,           // TODO: placeholder
-            lifetime: 500,           // TODO: placeholder
+            lifetime: 50,            // TODO: placeholder
             reproduction_range: 5.0, // TODO: placeholder
         }
     }
@@ -270,6 +266,12 @@ impl Firefly {
 impl Entity<Color> for Firefly {
     // todo: receive message, send message,
     fn update(&mut self, _world: &World<Color>) {
+        // At end of cooldown
+        if self.cur_flash_cooldown == 0 {
+            // Reset cooldown
+            self.cur_flash_cooldown = self.flash_cooldown;
+            // TODO: flash
+        }
         // Sanity check to make sure we dont update dead fireflies
         if self.lifetime == 0 {
             // grave of the fireflies
@@ -281,12 +283,6 @@ impl Entity<Color> for Firefly {
 
         // Tick down flash cooldown
         self.cur_flash_cooldown -= self.flash_rate;
-        // At end of cooldown
-        if self.cur_flash_cooldown == 0 {
-            // Reset cooldown
-            self.cur_flash_cooldown = self.flash_cooldown;
-            // TODO: flash
-        }
     }
     fn receive_message(&mut self, message: Color) {
         // If a firefly sees some color, it must by some logic
@@ -317,11 +313,18 @@ fn main() {
     };
 
     // create a swarm
-    world.create_swarm(1e4 as usize, 1);
+    //world.create_swarm(1e6 as usize, 1);
 
-    for _ in 0..10 {
+    world.add_entity(Firefly::new_at(vec![5_f32, 12_f32]));
+    world.add_entity(Firefly::new_at(vec![0_f32, 0_f32]));
+    world.add_entity(Firefly::new_at(vec![0_f32, 1_f32]));
+    world.add_entity(Firefly::new_at(vec![7_f32, 10_f32]));
+
+    for _ in 0..1 {
         world.update();
     }
+
+    println!("{}", world.num_entities());
 }
 
 #[cfg(test)]
@@ -334,11 +337,18 @@ mod test {
         };
 
         // create a swarm
-        world.create_swarm(10000, 1);
+        world.create_swarm(1e6 as usize, 1);
+
+        //world.add_entity(Firefly::new_at(vec![5_f32, 12_f32]));
+        //world.add_entity(Firefly::new_at(vec![0_f32, 0_f32]));
+        //world.add_entity(Firefly::new_at(vec![0_f32, 1_f32]));
+        //world.add_entity(Firefly::new_at(vec![7_f32, 10_f32]));
 
         for _ in 0..10 {
             world.update();
         }
+
+        println!("{}", world.num_entities());
     }
 
     #[test]
